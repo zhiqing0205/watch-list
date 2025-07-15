@@ -1,0 +1,25 @@
+body { 
+  font-family: system-ui, sans-serif; 
+}
+
+/* 手动定义一些暗色样式来测试 */
+.manual-dark-test {
+  background: white;
+  color: black;
+  padding: 1rem;
+  border: 1px solid #ccc;
+  transition: all 0.3s;
+}
+
+.dark .manual-dark-test {
+  background: #1f2937;
+  color: white;
+  border-color: #4b5563;
+}
+
+/* 测试 Tailwind 是否正确生成 dark: 类 */
+.test-bg { background: red; }
+.dark .test-bg { background: blue; }
+
+.test-text { color: green; }
+.dark .test-text { color: yellow; }
