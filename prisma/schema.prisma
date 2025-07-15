@@ -1,0 +1,218 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        Int      @id @default(autoincrement())
+  username  String   @unique
+  email     String?  @unique
+  name      String
+  password  String
+  role      Role     @default(ADMIN)
+  isActive  Boolean  @default(true)
+  lastLoginAt DateTime?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  operationLogs OperationLog[]
+  movieReviews  MovieReview[]
+  tvReviews     TvReview[]
+
+  @@map("users")
+}
+
+model Movie {
+  id              Int         @id @default(autoincrement())
+  tmdbId          Int         @unique
+  title           String
+  originalTitle   String?
+  overview        String?
+  releaseDate     DateTime?
+  runtime         Int?
+  genres          String[]
+  posterPath      String?
+  backdropPath    String?
+  posterUrl       String?
+  backdropUrl     String?
+  imdbId          String?
+  doubanRating    Float?
+  tmdbRating      Float?
+  watchStatus     WatchStatus @default(UNWATCHED)
+  summary         String?
+  playUrl         String?
+  isVisible       Boolean     @default(true)
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
+
+  // Relations
+  cast        MovieCast[]
+  reviews     MovieReview[]
+  operationLogs OperationLog[]
+
+  @@map("movies")
+}
+
+model TvShow {
+  id              Int         @id @default(autoincrement())
+  tmdbId          Int         @unique
+  name            String
+  originalName    String?
+  overview        String?
+  firstAirDate    DateTime?
+  lastAirDate     DateTime?
+  numberOfSeasons Int?
+  numberOfEpisodes Int?
+  genres          String[]
+  posterPath      String?
+  backdropPath    String?
+  posterUrl       String?
+  backdropUrl     String?
+  imdbId          String?
+  doubanRating    Float?
+  tmdbRating      Float?
+  watchStatus     WatchStatus @default(UNWATCHED)
+  summary         String?
+  playUrl         String?
+  isVisible       Boolean     @default(true)
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
+
+  // Relations
+  cast        TvCast[]
+  reviews     TvReview[]
+  operationLogs OperationLog[]
+
+  @@map("tv_shows")
+}
+
+model Actor {
+  id            Int      @id @default(autoincrement())
+  tmdbId        Int      @unique
+  name          String
+  originalName  String?
+  biography     String?
+  birthday      DateTime?
+  deathday      DateTime?
+  gender        Int?
+  profilePath   String?
+  profileUrl    String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  // Relations
+  movieRoles MovieCast[]
+  tvRoles    TvCast[]
+
+  @@map("actors")
+}
+
+model MovieCast {
+  id        Int @id @default(autoincrement())
+  movieId   Int
+  actorId   Int
+  character String?
+  order     Int?
+
+  // Relations
+  movie Movie @relation(fields: [movieId], references: [id], onDelete: Cascade)
+  actor Actor @relation(fields: [actorId], references: [id], onDelete: Cascade)
+
+  @@unique([movieId, actorId])
+  @@map("movie_cast")
+}
+
+model TvCast {
+  id        Int @id @default(autoincrement())
+  tvShowId  Int
+  actorId   Int
+  character String?
+  order     Int?
+
+  // Relations
+  tvShow TvShow @relation(fields: [tvShowId], references: [id], onDelete: Cascade)
+  actor  Actor  @relation(fields: [actorId], references: [id], onDelete: Cascade)
+
+  @@unique([tvShowId, actorId])
+  @@map("tv_cast")
+}
+
+model MovieReview {
+  id        Int      @id @default(autoincrement())
+  movieId   Int
+  userId    Int
+  rating    Float?
+  review    String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  movie Movie @relation(fields: [movieId], references: [id], onDelete: Cascade)
+  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([movieId, userId])
+  @@map("movie_reviews")
+}
+
+model TvReview {
+  id        Int      @id @default(autoincrement())
+  tvShowId  Int
+  userId    Int
+  rating    Float?
+  review    String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  tvShow TvShow @relation(fields: [tvShowId], references: [id], onDelete: Cascade)
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([tvShowId, userId])
+  @@map("tv_reviews")
+}
+
+model OperationLog {
+  id          Int           @id @default(autoincrement())
+  userId      Int
+  action      String
+  entityType  EntityType
+  entityId    Int?
+  movieId     Int?
+  tvShowId    Int?
+  description String?
+  createdAt   DateTime      @default(now())
+
+  // Relations
+  user   User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  movie  Movie?  @relation(fields: [movieId], references: [id], onDelete: Cascade)
+  tvShow TvShow? @relation(fields: [tvShowId], references: [id], onDelete: Cascade)
+
+  @@map("operation_logs")
+}
+
+enum Role {
+  ADMIN
+  USER
+}
+
+enum WatchStatus {
+  UNWATCHED
+  WATCHING
+  WATCHED
+  DROPPED
+}
+
+enum EntityType {
+  MOVIE
+  TV_SHOW
+  ACTOR
+  USER
+}
