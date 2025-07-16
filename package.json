@@ -6,10 +6,7 @@
     "dev": "next dev --turbopack",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint",
-    "db:seed": "npx tsx prisma/seed.ts",
-    "db:cleanup-logs": "npx tsx scripts/cleanup-logs.ts",
-    "db:cleanup-logs-force": "npx tsx scripts/cleanup-logs.ts --force"
+    "lint": "next lint"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.1.1",
