@@ -10,8 +10,7 @@ const nextConfig: NextConfig = {
     ignoreDuringBuilds: true,
   },
   experimental: {
-    // 确保 Prisma 正常工作
-    serverComponentsExternalPackages: ['prisma', '@prisma/client'],
+    // Remove serverComponentsExternalPackages as it's moved to serverExternalPackages
   },
   images: {
     remotePatterns: [
@@ -61,7 +60,7 @@ const nextConfig: NextConfig = {
     }
     return config;
   },
-  serverExternalPackages: ['ali-oss'],
+  serverExternalPackages: ['ali-oss', 'prisma', '@prisma/client'],
 };
 
 export default nextConfig;
