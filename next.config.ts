@@ -9,6 +9,10 @@ const nextConfig: NextConfig = {
     // 在build时忽略ESLint错误
     ignoreDuringBuilds: true,
   },
+  experimental: {
+    // 确保 Prisma 正常工作
+    serverComponentsExternalPackages: ['prisma', '@prisma/client'],
+  },
   images: {
     remotePatterns: [
       {

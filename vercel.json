@@ -1,6 +1,4 @@
 {
-  "buildCommand": "prisma generate && next build",
-  "installCommand": "npm ci && prisma generate",
   "crons": [
     {
       "path": "/api/admin/scheduled-tasks",
