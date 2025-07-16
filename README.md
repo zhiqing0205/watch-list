@@ -1,4 +1,4 @@
-# 🎬 Watch List - 个人影视管理平台
+# 🎬 Watch List - 剧海拾遗
 
 一个基于 Next.js 14 开发的现代化影视管理平台，支持电影和电视剧的收藏、观看状态管理、评分展示等功能。
 
@@ -64,10 +64,6 @@ OSS_ACCESS_KEY_SECRET="your_access_key_secret"
 # JWT 配置
 JWT_SECRET="your_jwt_secret_key"
 JWT_EXPIRES_IN="7d"
-
-# Next.js 配置
-NEXTAUTH_URL="http://localhost:3000"
-NEXTAUTH_SECRET="your_nextauth_secret"
 ```
 
 ### 数据库设置
@@ -78,9 +74,6 @@ npx prisma generate
 
 # 运行数据库迁移
 npx prisma db push
-
-# 种子数据 (可选)
-npm run db:seed
 ```
 
 ### 启动开发服务器
@@ -97,9 +90,6 @@ npm run dev
 - `npm run build` - 构建生产版本
 - `npm run start` - 启动生产服务器
 - `npm run lint` - 代码检查
-- `npm run db:seed` - 数据库种子数据
-- `npm run db:cleanup-logs` - 清理日志数据
-- `npm run db:cleanup-logs-force` - 强制清理日志数据
 
 ## 🎨 功能特性
 
