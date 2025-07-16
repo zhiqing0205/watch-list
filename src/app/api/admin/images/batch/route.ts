@@ -11,7 +11,7 @@ export async function POST(request: NextRequest) {
     
     const { limit } = await request.json()
 
-    const results = await batchProcessImages(user.userId, limit || 10)
+    const results = await batchProcessImages(limit || 10)
 
     // 记录操作日志
     await logOperation({

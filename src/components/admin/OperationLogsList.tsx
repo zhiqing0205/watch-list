@@ -10,17 +10,17 @@ import { UserAvatar } from '@/components/ui/user-avatar'
 import { Pagination } from '@/components/ui/Pagination'
 
 interface OperationLog {
-  id: string
-  userId: string
+  id: number
+  userId: number
   action: string
   entityType: string
-  entityId: number
+  entityId: number | null
   description: string | null
   createdAt: Date
   user: {
     name: string
     username: string
-    email: string
+    email: string | null
   }
   movie?: {
     title: string

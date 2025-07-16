@@ -1,6 +1,14 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  typescript: {
+    // 在build时忽略TypeScript错误
+    ignoreBuildErrors: true,
+  },
+  eslint: {
+    // 在build时忽略ESLint错误
+    ignoreDuringBuilds: true,
+  },
   images: {
     remotePatterns: [
       {

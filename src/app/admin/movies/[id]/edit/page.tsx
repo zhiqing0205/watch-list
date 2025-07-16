@@ -4,13 +4,14 @@ import { EditContentForm } from '@/components/admin/EditContentForm'
 import { prisma } from '@/lib/prisma'
 
 interface EditMoviePageProps {
-  params: {
+  params: Promise<{
     id: string
-  }
+  }>
 }
 
 export default async function EditMoviePage({ params }: EditMoviePageProps) {
-  const movieId = parseInt(params.id, 10)
+  const { id } = await params
+  const movieId = parseInt(id, 10)
   
   if (isNaN(movieId)) {
     notFound()

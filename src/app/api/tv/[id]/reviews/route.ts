@@ -4,9 +4,16 @@ import { prisma } from '@/lib/prisma'
 // Create or update a TV show review
 export async function POST(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params
+    const tvShowId = parseInt(id, 10)
+    
+    if (isNaN(tvShowId)) {
+      return NextResponse.json({ error: 'Invalid TV show ID' }, { status: 400 })
+    }
+
     const { userId, rating, review } = await request.json()
 
     if (!userId) {
@@ -20,8 +27,8 @@ export async function POST(
     const tvReview = await prisma.tvReview.upsert({
       where: {
         tvShowId_userId: {
-          tvShowId: params.id,
-          userId: userId
+          tvShowId: tvShowId,
+          userId: parseInt(userId, 10)
         }
       },
       update: {
@@ -30,8 +37,8 @@ export async function POST(
         updatedAt: new Date()
       },
       create: {
-        tvShowId: params.id,
-        userId: userId,
+        tvShowId: tvShowId,
+        userId: parseInt(userId, 10),
         rating: rating || null,
         review: review || null
       },
@@ -48,11 +55,11 @@ export async function POST(
     // Create operation log
     await prisma.operationLog.create({
       data: {
-        userId,
+        userId: parseInt(userId, 10),
         action: 'CREATE_REVIEW',
         entityType: 'TV_SHOW',
-        entityId: params.id,
-        tvShowId: params.id,
+        entityId: tvShowId,
+        tvShowId: tvShowId,
         description: `${rating ? '评分' : ''}${review ? '评论' : ''}电视剧`,
       }
     })
@@ -67,11 +74,18 @@ export async function POST(
 // Get TV show reviews
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params
+    const tvShowId = parseInt(id, 10)
+    
+    if (isNaN(tvShowId)) {
+      return NextResponse.json({ error: 'Invalid TV show ID' }, { status: 400 })
+    }
+
     const reviews = await prisma.tvReview.findMany({
-      where: { tvShowId: params.id },
+      where: { tvShowId: tvShowId },
       include: {
         user: {
           select: {
@@ -95,9 +109,16 @@ export async function GET(
 // Delete a TV show review
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params
+    const tvShowId = parseInt(id, 10)
+    
+    if (isNaN(tvShowId)) {
+      return NextResponse.json({ error: 'Invalid TV show ID' }, { status: 400 })
+    }
+
     const { searchParams } = new URL(request.url)
     const userId = searchParams.get('userId')
 
@@ -108,8 +129,8 @@ export async function DELETE(
     await prisma.tvReview.delete({
       where: {
         tvShowId_userId: {
-          tvShowId: params.id,
-          userId: userId
+          tvShowId: tvShowId,
+          userId: parseInt(userId, 10)
         }
       }
     })
@@ -117,11 +138,11 @@ export async function DELETE(
     // Create operation log
     await prisma.operationLog.create({
       data: {
-        userId,
+        userId: parseInt(userId, 10),
         action: 'DELETE_REVIEW',
         entityType: 'TV_SHOW',
-        entityId: params.id,
-        tvShowId: params.id,
+        entityId: tvShowId,
+        tvShowId: tvShowId,
         description: '删除电视剧评论',
       }
     })

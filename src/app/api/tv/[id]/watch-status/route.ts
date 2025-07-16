@@ -5,9 +5,16 @@ import { WatchStatus } from '@prisma/client'
 // Update watch status for a TV show
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params
+    const tvShowId = parseInt(id, 10)
+    
+    if (isNaN(tvShowId)) {
+      return NextResponse.json({ error: 'Invalid TV show ID' }, { status: 400 })
+    }
+
     const { watchStatus, userId } = await request.json()
 
     if (!watchStatus || !userId) {
@@ -19,14 +26,14 @@ export async function PUT(
     }
 
     const tvShow = await prisma.tvShow.update({
-      where: { id: params.id },
+      where: { id: tvShowId },
       data: { watchStatus }
     })
 
     // Create operation log
     await prisma.operationLog.create({
       data: {
-        userId,
+        userId: parseInt(userId, 10),
         action: 'UPDATE_WATCH_STATUS',
         entityType: 'TV_SHOW',
         entityId: tvShow.id,
@@ -45,11 +52,18 @@ export async function PUT(
 // Get TV show watch status
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params
+    const tvShowId = parseInt(id, 10)
+    
+    if (isNaN(tvShowId)) {
+      return NextResponse.json({ error: 'Invalid TV show ID' }, { status: 400 })
+    }
+
     const tvShow = await prisma.tvShow.findUnique({
-      where: { id: params.id },
+      where: { id: tvShowId },
       select: {
         id: true,
         name: true,
