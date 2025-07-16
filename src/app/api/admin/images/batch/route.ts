@@ -4,6 +4,8 @@ import { requireAdmin } from '@/lib/auth-server'
 import { logOperation, LOG_ACTIONS } from '@/lib/operation-logger'
 import { EntityType } from '@prisma/client'
 
+export const dynamic = 'force-dynamic'
+
 export async function POST(request: NextRequest) {
   try {
     // 验证用户认证和权限
