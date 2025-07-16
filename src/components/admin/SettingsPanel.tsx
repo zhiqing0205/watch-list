@@ -14,6 +14,11 @@ export function SettingsPanel() {
     defaultWatchStatus: 'UNWATCHED',
     enablePublicAccess: false,
     itemsPerPage: 20,
+    // 定时任务配置
+    cronEnabled: process.env.TMDB_AUTO_UPDATE_ENABLED === 'true',
+    cronExpression: process.env.TMDB_UPDATE_CRON || '0 2 * * *', // 每天凌晨2点
+    cronLastRun: null,
+    batchSize: parseInt(process.env.TMDB_UPDATE_BATCH_SIZE || '50'),
   })
 
   const [loading, setLoading] = useState(false)
@@ -45,6 +50,38 @@ export function SettingsPanel() {
       toast.error(`${service} 连接测试失败`)
     } finally {
       setLoading(false)
+    }
+  }
+
+  const handleBatchRefreshTMDB = async () => {
+    setBatchProcessing(true)
+    try {
+      const response = await fetch('/api/admin/content/refresh-tmdb', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          // 空数组表示刷新所有内容
+          refreshAll: true
+        })
+      })
+
+      if (response.ok) {
+        const result = await response.json()
+        toast.success('TMDB元数据刷新完成！', {
+          description: `成功刷新 ${result.results.success} 个内容${result.results.failed > 0 ? `，失败: ${result.results.failed} 个` : ''}`
+        })
+      } else {
+        throw new Error('TMDB元数据刷新失败')
+      }
+    } catch (error) {
+      console.error('TMDB refresh error:', error)
+      toast.error('TMDB元数据刷新失败', {
+        description: '请检查TMDB API配置'
+      })
+    } finally {
+      setBatchProcessing(false)
     }
   }
 
@@ -105,7 +142,7 @@ export function SettingsPanel() {
               <button
                 onClick={() => handleTestConnection('TMDb')}
                 disabled={loading}
-                className="px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-slate-900 dark:text-slate-50 rounded-lg transition-colors"
+                className="px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white rounded-lg transition-colors"
               >
                 测试
               </button>
@@ -164,7 +201,7 @@ export function SettingsPanel() {
                 <button
                   onClick={() => handleTestConnection('OSS')}
                   disabled={loading}
-                  className="px-4 py-2 bg-green-600 hover:bg-green-700 disabled:opacity-50 text-slate-900 dark:text-slate-50 rounded-lg transition-colors"
+                  className="px-4 py-2 bg-green-600 hover:bg-green-700 disabled:opacity-50 text-white rounded-lg transition-colors"
                 >
                   测试
                 </button>
@@ -248,7 +285,7 @@ export function SettingsPanel() {
         <button
           onClick={handleSave}
           disabled={loading}
-          className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-slate-900 dark:text-slate-50 px-6 py-3 rounded-lg transition-colors"
+          className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white px-6 py-3 rounded-lg transition-colors"
         >
           {loading ? (
             <RefreshCw className="h-4 w-4 animate-spin" />
@@ -263,6 +300,117 @@ export function SettingsPanel() {
             <span className="text-sm">✓ 设置已保存</span>
           </div>
         )}
+      </div>
+
+      {/* TMDB 元数据刷新工具 */}
+      <div className="bg-white dark:bg-slate-800 rounded-lg p-6">
+        <div className="flex items-center gap-2 mb-4">
+          <RefreshCw className="h-5 w-5 text-orange-500" />
+          <h3 className="text-lg font-semibold text-slate-900 dark:text-slate-50">TMDB 元数据管理</h3>
+        </div>
+        
+        <div className="space-y-4">
+          <p className="text-slate-600 dark:text-slate-400 text-sm">
+            批量刷新所有影视内容的TMDB元数据，包括标题、概述、评分、类型等信息。
+          </p>
+          
+          <div className="flex gap-4">
+            <button
+              onClick={handleBatchRefreshTMDB}
+              disabled={batchProcessing}
+              className="flex items-center gap-2 bg-orange-600 hover:bg-orange-700 disabled:opacity-50 text-white px-4 py-2 rounded-lg transition-colors"
+            >
+              {batchProcessing ? (
+                <RefreshCw className="h-4 w-4 animate-spin" />
+              ) : (
+                <RefreshCw className="h-4 w-4" />
+              )}
+              {batchProcessing ? '刷新中...' : '批量刷新TMDB元数据'}
+            </button>
+            
+            {batchProcessing && (
+              <div className="flex items-center text-orange-400 text-sm">
+                正在刷新TMDB元数据，请稍候...
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* 定时任务配置 */}
+      <div className="bg-white dark:bg-slate-800 rounded-lg p-6">
+        <div className="flex items-center gap-2 mb-4">
+          <Database className="h-5 w-5 text-indigo-500" />
+          <h3 className="text-lg font-semibold text-slate-900 dark:text-slate-50">定时任务配置</h3>
+        </div>
+        
+        <div className="space-y-4">
+          <div className="flex items-center">
+            <input
+              type="checkbox"
+              id="cronEnabled"
+              checked={settings.cronEnabled}
+              onChange={(e) => setSettings(prev => ({ ...prev, cronEnabled: e.target.checked }))}
+              className="mr-3 h-4 w-4 text-blue-600 bg-slate-100 dark:bg-slate-700 border-slate-300 dark:border-slate-600 rounded focus:ring-blue-500"
+            />
+            <label htmlFor="cronEnabled" className="text-sm text-slate-700 dark:text-slate-300">
+              启用定时刷新TMDB元数据
+            </label>
+          </div>
+          
+          {settings.cronEnabled && (
+            <div className="space-y-3">
+              <div>
+                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+                  Cron 表达式
+                </label>
+                <input
+                  type="text"
+                  value={settings.cronExpression}
+                  onChange={(e) => setSettings(prev => ({ ...prev, cronExpression: e.target.value }))}
+                  className="w-full px-3 py-2 bg-slate-100 dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded-lg text-slate-900 dark:text-slate-50 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  placeholder="0 2 * * *"
+                />
+                <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+                  默认: 0 2 * * * (每天凌晨2点执行)
+                </p>
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+                  批量大小
+                </label>
+                <input
+                  type="number"
+                  value={settings.batchSize}
+                  onChange={(e) => setSettings(prev => ({ ...prev, batchSize: parseInt(e.target.value) || 50 }))}
+                  className="w-full px-3 py-2 bg-slate-100 dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded-lg text-slate-900 dark:text-slate-50 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  placeholder="50"
+                  min="1"
+                  max="100"
+                />
+                <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+                  每次更新的内容数量 (1-100)
+                </p>
+              </div>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <span className="text-sm text-slate-600 dark:text-slate-400">上次执行:</span>
+                  <span className="text-sm text-slate-900 dark:text-slate-50 ml-2">
+                    {settings.cronLastRun || '从未执行'}
+                  </span>
+                </div>
+                <div>
+                  <span className="text-sm text-slate-600 dark:text-slate-400">下次执行:</span>
+                  <span className="text-sm text-slate-900 dark:text-slate-50 ml-2">
+                    根据Cron表达式计算
+                  </span>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
       </div>
 
       {/* 图片处理工具 */}
@@ -281,7 +429,7 @@ export function SettingsPanel() {
             <button
               onClick={handleBatchProcessImages}
               disabled={batchProcessing}
-              className="flex items-center gap-2 bg-cyan-600 hover:bg-cyan-700 disabled:opacity-50 text-slate-900 dark:text-slate-50 px-4 py-2 rounded-lg transition-colors"
+              className="flex items-center gap-2 bg-cyan-600 hover:bg-cyan-700 disabled:opacity-50 text-white px-4 py-2 rounded-lg transition-colors"
             >
               {batchProcessing ? (
                 <RefreshCw className="h-4 w-4 animate-spin" />

@@ -32,7 +32,7 @@ export default async function AdminTvShows() {
         <div className="flex-shrink-0 p-6 border-b border-slate-200 dark:border-slate-700">
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-3xl font-bold text-slate-900 dark:text-slate-50 mb-2">电视剧管理</h1>
+              <h1 className="text-3xl font-bold text-slate-900 dark:text-slate-50 mb-2">电视剧管理后台</h1>
               <p className="text-slate-600 dark:text-slate-400">管理您的电视剧收藏</p>
             </div>
             <Button asChild className="bg-blue-600 hover:bg-blue-700 text-white">

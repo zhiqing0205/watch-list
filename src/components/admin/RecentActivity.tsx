@@ -3,6 +3,7 @@ import dayjs from 'dayjs'
 import relativeTime from 'dayjs/plugin/relativeTime'
 import 'dayjs/locale/zh-cn'
 import { Clock, User, Film, Tv, Users, ExternalLink } from 'lucide-react'
+import { UserAvatar } from '@/components/ui/user-avatar'
 import Link from 'next/link'
 
 // 配置 dayjs
@@ -75,11 +76,14 @@ export async function RecentActivity() {
         <div className="p-4">
           {recentLogs.map((log) => (
             <div key={log.id} className="grid grid-cols-12 gap-3 items-center py-3 px-3 hover:bg-slate-50 dark:hover:bg-slate-700/50 rounded-lg transition-colors border-b border-slate-100 dark:border-slate-700 last:border-b-0">
-              {/* 用户名 */}
+              {/* 用户信息 */}
               <div className="col-span-2">
-                <span className="text-slate-900 dark:text-slate-50 font-medium text-sm truncate block" title={log.user.name}>
-                  {log.user.name}
-                </span>
+                <UserAvatar 
+                  name={log.user.name} 
+                  username={log.user.username} 
+                  size="sm" 
+                  className="w-full"
+                />
               </div>
               
               {/* 图标 + 影视剧名字 */}

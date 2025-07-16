@@ -14,6 +14,7 @@ export default async function AdminLogs() {
         user: {
           select: {
             name: true,
+            username: true,
             email: true,
           },
         },
