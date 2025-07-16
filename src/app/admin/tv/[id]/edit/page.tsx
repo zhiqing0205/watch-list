@@ -4,13 +4,14 @@ import { EditContentForm } from '@/components/admin/EditContentForm'
 import { prisma } from '@/lib/prisma'
 
 interface EditTvShowPageProps {
-  params: {
+  params: Promise<{
     id: string
-  }
+  }>
 }
 
 export default async function EditTvShowPage({ params }: EditTvShowPageProps) {
-  const tvShowId = parseInt(params.id, 10)
+  const { id } = await params
+  const tvShowId = parseInt(id, 10)
   
   if (isNaN(tvShowId)) {
     notFound()

@@ -9,8 +9,8 @@ import { SimilarMovies } from '@/components/SimilarMovies'
 import { generateSEO, seoConfigs } from '@/lib/seo'
 
 export async function generateMetadata({ params }: MoviePageProps) {
-  const resolvedParams = await params
-  const movieId = parseInt(resolvedParams.id, 10)
+  const { id } = await params
+  const movieId = parseInt(id, 10)
   
   if (isNaN(movieId)) {
     return generateSEO({
@@ -35,14 +35,14 @@ export async function generateMetadata({ params }: MoviePageProps) {
 }
 
 interface MoviePageProps {
-  params: {
+  params: Promise<{
     id: string
-  }
+  }>
 }
 
 export default async function MoviePage({ params }: MoviePageProps) {
-  const resolvedParams = await params
-  const movieId = parseInt(resolvedParams.id, 10)
+  const { id } = await params
+  const movieId = parseInt(id, 10)
   
   // 检查ID是否为有效数字
   if (isNaN(movieId)) {

@@ -2,9 +2,10 @@ import { Suspense } from 'react'
 import SearchPageClient from '@/components/SearchPageClient'
 import { generateSEO } from '@/lib/seo'
 
-export async function generateMetadata({ searchParams }: { searchParams: { q?: string, actor?: string } }) {
-  const query = searchParams.q
-  const actorId = searchParams.actor
+export async function generateMetadata({ searchParams }: { searchParams: Promise<{ q?: string, actor?: string }> }) {
+  const params = await searchParams
+  const query = params.q
+  const actorId = params.actor
   
   if (actorId) {
     return generateSEO({

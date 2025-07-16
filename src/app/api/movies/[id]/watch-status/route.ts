@@ -5,9 +5,16 @@ import { WatchStatus } from '@prisma/client'
 // Update watch status for a movie
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params
+    const movieId = parseInt(id, 10)
+    
+    if (isNaN(movieId)) {
+      return NextResponse.json({ error: 'Invalid movie ID' }, { status: 400 })
+    }
+
     const { watchStatus, userId } = await request.json()
 
     if (!watchStatus || !userId) {
@@ -19,14 +26,14 @@ export async function PUT(
     }
 
     const movie = await prisma.movie.update({
-      where: { id: params.id },
+      where: { id: movieId },
       data: { watchStatus }
     })
 
     // Create operation log
     await prisma.operationLog.create({
       data: {
-        userId,
+        userId: parseInt(userId, 10),
         action: 'UPDATE_WATCH_STATUS',
         entityType: 'MOVIE',
         entityId: movie.id,
@@ -45,11 +52,18 @@ export async function PUT(
 // Get movie watch status
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params
+    const movieId = parseInt(id, 10)
+    
+    if (isNaN(movieId)) {
+      return NextResponse.json({ error: 'Invalid movie ID' }, { status: 400 })
+    }
+
     const movie = await prisma.movie.findUnique({
-      where: { id: params.id },
+      where: { id: movieId },
       select: {
         id: true,
         title: true,

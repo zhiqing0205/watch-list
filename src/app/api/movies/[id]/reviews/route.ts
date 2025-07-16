@@ -4,9 +4,16 @@ import { prisma } from '@/lib/prisma'
 // Create or update a movie review
 export async function POST(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params
+    const movieId = parseInt(id, 10)
+    
+    if (isNaN(movieId)) {
+      return NextResponse.json({ error: 'Invalid movie ID' }, { status: 400 })
+    }
+
     const { userId, rating, review } = await request.json()
 
     if (!userId) {
@@ -20,8 +27,8 @@ export async function POST(
     const movieReview = await prisma.movieReview.upsert({
       where: {
         movieId_userId: {
-          movieId: params.id,
-          userId: userId
+          movieId: movieId,
+          userId: parseInt(userId, 10)
         }
       },
       update: {
@@ -30,8 +37,8 @@ export async function POST(
         updatedAt: new Date()
       },
       create: {
-        movieId: params.id,
-        userId: userId,
+        movieId: movieId,
+        userId: parseInt(userId, 10),
         rating: rating || null,
         review: review || null
       },
@@ -48,11 +55,11 @@ export async function POST(
     // Create operation log
     await prisma.operationLog.create({
       data: {
-        userId,
+        userId: parseInt(userId, 10),
         action: 'CREATE_REVIEW',
         entityType: 'MOVIE',
-        entityId: params.id,
-        movieId: params.id,
+        entityId: movieId,
+        movieId: movieId,
         description: `${rating ? '评分' : ''}${review ? '评论' : ''}电影`,
       }
     })
@@ -67,11 +74,18 @@ export async function POST(
 // Get movie reviews
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params
+    const movieId = parseInt(id, 10)
+    
+    if (isNaN(movieId)) {
+      return NextResponse.json({ error: 'Invalid movie ID' }, { status: 400 })
+    }
+
     const reviews = await prisma.movieReview.findMany({
-      where: { movieId: params.id },
+      where: { movieId: movieId },
       include: {
         user: {
           select: {
@@ -95,9 +109,16 @@ export async function GET(
 // Delete a movie review
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params
+    const movieId = parseInt(id, 10)
+    
+    if (isNaN(movieId)) {
+      return NextResponse.json({ error: 'Invalid movie ID' }, { status: 400 })
+    }
+
     const { searchParams } = new URL(request.url)
     const userId = searchParams.get('userId')
 
@@ -108,8 +129,8 @@ export async function DELETE(
     await prisma.movieReview.delete({
       where: {
         movieId_userId: {
-          movieId: params.id,
-          userId: userId
+          movieId: movieId,
+          userId: parseInt(userId, 10)
         }
       }
     })
@@ -117,11 +138,11 @@ export async function DELETE(
     // Create operation log
     await prisma.operationLog.create({
       data: {
-        userId,
+        userId: parseInt(userId, 10),
         action: 'DELETE_REVIEW',
         entityType: 'MOVIE',
-        entityId: params.id,
-        movieId: params.id,
+        entityId: movieId,
+        movieId: movieId,
         description: '删除电影评论',
       }
     })

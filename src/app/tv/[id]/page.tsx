@@ -9,8 +9,8 @@ import { SimilarTvShows } from '@/components/SimilarTvShows'
 import { generateSEO, seoConfigs } from '@/lib/seo'
 
 export async function generateMetadata({ params }: TvPageProps) {
-  const resolvedParams = await params
-  const tvShowId = parseInt(resolvedParams.id, 10)
+  const { id } = await params
+  const tvShowId = parseInt(id, 10)
   
   if (isNaN(tvShowId)) {
     return generateSEO({
@@ -35,14 +35,14 @@ export async function generateMetadata({ params }: TvPageProps) {
 }
 
 interface TvPageProps {
-  params: {
+  params: Promise<{
     id: string
-  }
+  }>
 }
 
 export default async function TvPage({ params }: TvPageProps) {
-  const resolvedParams = await params
-  const tvShowId = parseInt(resolvedParams.id, 10)
+  const { id } = await params
+  const tvShowId = parseInt(id, 10)
   
   // 检查ID是否为有效数字
   if (isNaN(tvShowId)) {

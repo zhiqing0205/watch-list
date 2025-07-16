@@ -3,11 +3,9 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Shield, Eye, EyeOff, User, Lock } from 'lucide-react'
-import { useToast } from '@/components/ui/Toast'
 
 export default function InitPage() {
   const router = useRouter()
-  const { success, error } = useToast()
   const [formData, setFormData] = useState({
     username: '',
     name: '',
@@ -17,28 +15,34 @@ export default function InitPage() {
   const [showPassword, setShowPassword] = useState(false)
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
   const [loading, setLoading] = useState(false)
+  const [message, setMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null)
+
+  const showMessage = (type: 'success' | 'error', text: string) => {
+    setMessage({ type, text })
+    setTimeout(() => setMessage(null), 5000)
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     
     // 验证表单
     if (!formData.username.trim()) {
-      error('请输入用户名')
+      showMessage('error', '请输入用户名')
       return
     }
     
     if (!formData.name.trim()) {
-      error('请输入姓名')
+      showMessage('error', '请输入姓名')
       return
     }
     
     if (formData.password.length < 6) {
-      error('密码长度至少6位')
+      showMessage('error', '密码长度至少6位')
       return
     }
     
     if (formData.password !== formData.confirmPassword) {
-      error('两次输入的密码不一致')
+      showMessage('error', '两次输入的密码不一致')
       return
     }
 
@@ -59,16 +63,16 @@ export default function InitPage() {
       const data = await response.json()
 
       if (response.ok) {
-        success('初始化成功！', '管理员账户已创建，正在跳转到登录页面...')
+        showMessage('success', '初始化成功！正在跳转到登录页面...')
         setTimeout(() => {
           router.push('/admin/login')
         }, 2000)
       } else {
-        error('初始化失败', data.error || '未知错误')
+        showMessage('error', data.error || '初始化失败')
       }
     } catch (err) {
       console.error('Init error:', err)
-      error('初始化失败', '网络错误或服务器异常')
+      showMessage('error', '网络错误或服务器异常')
     } finally {
       setLoading(false)
     }
@@ -88,6 +92,17 @@ export default function InitPage() {
               检测到系统尚未初始化，请创建管理员账户
             </p>
           </div>
+
+          {/* 消息提示 */}
+          {message && (
+            <div className={`mb-4 p-3 rounded-lg ${
+              message.type === 'success' 
+                ? 'bg-green-900/50 border border-green-500/50 text-green-300' 
+                : 'bg-red-900/50 border border-red-500/50 text-red-300'
+            }`}>
+              {message.text}
+            </div>
+          )}
 
           {/* 表单 */}
           <form onSubmit={handleSubmit} className="space-y-6">

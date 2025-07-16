@@ -9,8 +9,7 @@ export async function processMovieImages(movieId: number): Promise<void> {
       tmdbId: true, 
       posterPath: true, 
       backdropPath: true, 
-      posterUrl: true, 
-      backdropUrl: true 
+      ossImageUrl: true 
     }
   })
   
@@ -20,27 +19,15 @@ export async function processMovieImages(movieId: number): Promise<void> {
   
   const updates: any = {}
   
-  if (movie.posterPath && !movie.posterUrl) {
+  if (movie.posterPath && !movie.ossImageUrl) {
     const posterTmdbUrl = `https://image.tmdb.org/t/p/w500${movie.posterPath}`
     const posterOssPath = `movie/${movie.tmdbId}/poster.jpg`
     
     try {
       const posterOssUrl = await uploadFromUrl(posterTmdbUrl, posterOssPath)
-      updates.posterUrl = posterOssUrl
+      updates.ossImageUrl = posterOssUrl
     } catch (error) {
       console.error(`Failed to process poster for movie ${movie.id}:`, error)
-    }
-  }
-  
-  if (movie.backdropPath && !movie.backdropUrl) {
-    const backdropTmdbUrl = `https://image.tmdb.org/t/p/w1280${movie.backdropPath}`
-    const backdropOssPath = `movie/${movie.tmdbId}/backdrop.jpg`
-    
-    try {
-      const backdropOssUrl = await uploadFromUrl(backdropTmdbUrl, backdropOssPath)
-      updates.backdropUrl = backdropOssUrl
-    } catch (error) {
-      console.error(`Failed to process backdrop for movie ${movie.id}:`, error)
     }
   }
   
@@ -60,8 +47,7 @@ export async function processTvShowImages(tvShowId: number): Promise<void> {
       tmdbId: true, 
       posterPath: true, 
       backdropPath: true, 
-      posterUrl: true, 
-      backdropUrl: true 
+      ossImageUrl: true 
     }
   })
   
@@ -71,27 +57,15 @@ export async function processTvShowImages(tvShowId: number): Promise<void> {
   
   const updates: any = {}
   
-  if (tvShow.posterPath && !tvShow.posterUrl) {
+  if (tvShow.posterPath && !tvShow.ossImageUrl) {
     const posterTmdbUrl = `https://image.tmdb.org/t/p/w500${tvShow.posterPath}`
     const posterOssPath = `tv/${tvShow.tmdbId}/poster.jpg`
     
     try {
       const posterOssUrl = await uploadFromUrl(posterTmdbUrl, posterOssPath)
-      updates.posterUrl = posterOssUrl
+      updates.ossImageUrl = posterOssUrl
     } catch (error) {
       console.error(`Failed to process poster for TV show ${tvShow.id}:`, error)
-    }
-  }
-  
-  if (tvShow.backdropPath && !tvShow.backdropUrl) {
-    const backdropTmdbUrl = `https://image.tmdb.org/t/p/w1280${tvShow.backdropPath}`
-    const backdropOssPath = `tv/${tvShow.tmdbId}/backdrop.jpg`
-    
-    try {
-      const backdropOssUrl = await uploadFromUrl(backdropTmdbUrl, backdropOssPath)
-      updates.backdropUrl = backdropOssUrl
-    } catch (error) {
-      console.error(`Failed to process backdrop for TV show ${tvShow.id}:`, error)
     }
   }
   
@@ -110,7 +84,7 @@ export async function processActorImages(actorId: number): Promise<void> {
       id: true, 
       tmdbId: true, 
       profilePath: true, 
-      profileUrl: true 
+      ossImageUrl: true 
     }
   })
   
@@ -118,7 +92,7 @@ export async function processActorImages(actorId: number): Promise<void> {
     throw new Error(`Actor with ID ${actorId} not found`)
   }
   
-  if (actor.profilePath && !actor.profileUrl) {
+  if (actor.profilePath && !actor.ossImageUrl) {
     const profileTmdbUrl = `https://image.tmdb.org/t/p/w276_and_h350_face${actor.profilePath}`
     const profileOssPath = `actor/${actor.tmdbId}/profile.jpg`
     
@@ -127,7 +101,7 @@ export async function processActorImages(actorId: number): Promise<void> {
       
       await prisma.actor.update({
         where: { id: actorId },
-        data: { profileUrl: profileOssUrl }
+        data: { ossImageUrl: profileOssUrl }
       })
     } catch (error) {
       console.error(`Failed to process profile for actor ${actor.id}:`, error)
@@ -140,10 +114,8 @@ export async function processAllImages(): Promise<void> {
   
   const movies = await prisma.movie.findMany({
     where: {
-      OR: [
-        { posterPath: { not: null }, posterUrl: null },
-        { backdropPath: { not: null }, backdropUrl: null }
-      ]
+      posterPath: { not: null },
+      ossImageUrl: null
     },
     select: { id: true }
   })
@@ -160,10 +132,8 @@ export async function processAllImages(): Promise<void> {
   
   const tvShows = await prisma.tvShow.findMany({
     where: {
-      OR: [
-        { posterPath: { not: null }, posterUrl: null },
-        { backdropPath: { not: null }, backdropUrl: null }
-      ]
+      posterPath: { not: null },
+      ossImageUrl: null
     },
     select: { id: true }
   })
@@ -181,7 +151,7 @@ export async function processAllImages(): Promise<void> {
   const actors = await prisma.actor.findMany({
     where: {
       profilePath: { not: null },
-      profileUrl: null
+      ossImageUrl: null
     },
     select: { id: true }
   })
@@ -197,6 +167,82 @@ export async function processAllImages(): Promise<void> {
   }
   
   console.log('Image processing completed!')
+}
+
+export async function batchProcessImages(limit: number = 10) {
+  console.log('Starting batch image processing...')
+  
+  const results = {
+    processedContent: 0,
+    processedActors: 0,
+    errors: [] as string[]
+  }
+  
+  try {
+    // Process movies
+    const movies = await prisma.movie.findMany({
+      where: {
+        posterPath: { not: null },
+        ossImageUrl: null
+      },
+      select: { id: true },
+      take: Math.ceil(limit / 2)
+    })
+    
+    for (const movie of movies) {
+      try {
+        await processMovieImages(movie.id)
+        results.processedContent++
+      } catch (error) {
+        results.errors.push(`Movie ${movie.id}: ${error instanceof Error ? error.message : 'Unknown error'}`)
+      }
+    }
+    
+    // Process TV shows
+    const tvShows = await prisma.tvShow.findMany({
+      where: {
+        posterPath: { not: null },
+        ossImageUrl: null
+      },
+      select: { id: true },
+      take: Math.ceil(limit / 2)
+    })
+    
+    for (const tvShow of tvShows) {
+      try {
+        await processTvShowImages(tvShow.id)
+        results.processedContent++
+      } catch (error) {
+        results.errors.push(`TV Show ${tvShow.id}: ${error instanceof Error ? error.message : 'Unknown error'}`)
+      }
+    }
+    
+    // Process actors
+    const actors = await prisma.actor.findMany({
+      where: {
+        profilePath: { not: null },
+        ossImageUrl: null
+      },
+      select: { id: true },
+      take: Math.min(limit, 5)
+    })
+    
+    for (const actor of actors) {
+      try {
+        await processActorImages(actor.id)
+        results.processedActors++
+      } catch (error) {
+        results.errors.push(`Actor ${actor.id}: ${error instanceof Error ? error.message : 'Unknown error'}`)
+      }
+    }
+    
+    console.log('Batch image processing completed!')
+    return results
+  } catch (error) {
+    console.error('Error in batch image processing:', error)
+    results.errors.push(`Batch processing error: ${error instanceof Error ? error.message : 'Unknown error'}`)
+    return results
+  }
 }
 
 export async function processContentImages(contentId: number, contentType: 'movie' | 'tv'): Promise<void> {
