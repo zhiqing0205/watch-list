@@ -1,13 +1,16 @@
 import Image from 'next/image'
 import Link from 'next/link'
 import { Movie, WatchStatus } from '@prisma/client'
-import { Clock, CheckCircle, XCircle } from 'lucide-react'
+import { Clock, CheckCircle, XCircle, Loader2 } from 'lucide-react'
+import { useState } from 'react'
 
 interface MovieCardProps {
   movie: Movie
 }
 
 export function MovieCard({ movie }: MovieCardProps) {
+  const [isLoading, setIsLoading] = useState(false)
+  
   const getStatusIcon = (status: WatchStatus) => {
     switch (status) {
       case WatchStatus.WATCHING:
@@ -34,9 +37,21 @@ export function MovieCard({ movie }: MovieCardProps) {
     }
   }
 
+  const handleClick = (e: React.MouseEvent) => {
+    setIsLoading(true)
+  }
+
   return (
-    <Link href={`/movies/${movie.id}`}>
-      <div className="group cursor-pointer overflow-hidden bg-white/70 dark:bg-slate-800/70 backdrop-blur-sm transition-all duration-300 hover:scale-105 hover:shadow-xl rounded-lg">
+    <Link href={`/movies/${movie.id}`} onClick={handleClick}>
+      <div className="group cursor-pointer overflow-hidden bg-white/70 dark:bg-slate-800/70 backdrop-blur-sm transition-all duration-300 hover:scale-105 hover:shadow-xl rounded-lg relative">
+        {isLoading && (
+          <div className="absolute inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-10 rounded-lg">
+            <div className="flex flex-col items-center gap-2">
+              <Loader2 className="h-6 w-6 animate-spin text-white" />
+              <span className="text-white text-sm">加载中...</span>
+            </div>
+          </div>
+        )}
         <div className="aspect-[2/3] relative">
           {(movie as any).posterUrl || movie.posterPath ? (
             <Image

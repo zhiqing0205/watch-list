@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { AuthUtils } from '@/lib/auth'
 
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl
@@ -37,27 +36,7 @@ export async function middleware(request: NextRequest) {
     }
   }
 
-  // 对于 /admin 路径（除了登录页），检查认证
-  if (pathname.startsWith('/admin') && pathname !== '/admin/login') {
-    const token = request.cookies.get('auth-token')?.value
-
-    if (!token) {
-      return NextResponse.redirect(new URL('/admin/login', request.url))
-    }
-
-    const payload = AuthUtils.verifyToken(token)
-    if (!payload) {
-      const response = NextResponse.redirect(new URL('/admin/login', request.url))
-      response.cookies.delete('auth-token')
-      return response
-    }
-
-    // 检查是否为管理员
-    if (payload.role !== 'ADMIN') {
-      return NextResponse.redirect(new URL('/admin/login', request.url))
-    }
-  }
-
+  // Admin 路径的认证检查已经移到 AuthProvider 中处理
   return NextResponse.next()
 }
 
