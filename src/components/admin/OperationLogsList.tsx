@@ -6,6 +6,7 @@ import { zhCN } from 'date-fns/locale'
 import { User, Film, Tv, Users, Calendar, MessageSquare } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
+import { UserAvatar } from '@/components/ui/user-avatar'
 import { Pagination } from '@/components/ui/Pagination'
 
 interface OperationLog {
@@ -18,6 +19,7 @@ interface OperationLog {
   createdAt: Date
   user: {
     name: string
+    username: string
     email: string
   }
   movie?: {
@@ -127,10 +129,7 @@ export function OperationLogsList({ initialLogs, totalCount }: OperationLogsList
                     操作
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-slate-700 dark:text-slate-300 uppercase tracking-wider">
-                    类型
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-slate-700 dark:text-slate-300 uppercase tracking-wider">
-                    对象
+                    内容
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-slate-700 dark:text-slate-300 uppercase tracking-wider">
                     描述
@@ -152,10 +151,11 @@ export function OperationLogsList({ initialLogs, totalCount }: OperationLogsList
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm">
-                        <div className="text-slate-900 dark:text-slate-50 font-medium">{log.user.name}</div>
-                        <div className="text-slate-600 dark:text-slate-400 text-xs">{log.user.email}</div>
-                      </div>
+                      <UserAvatar 
+                        name={log.user.name} 
+                        username={log.user.username} 
+                        size="sm" 
+                      />
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <Badge variant={getActionVariant(log.action)} className="text-xs">
@@ -165,14 +165,9 @@ export function OperationLogsList({ initialLogs, totalCount }: OperationLogsList
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="flex items-center gap-2">
                         {getEntityIcon(log.entityType)}
-                        <span className="text-sm text-slate-700 dark:text-slate-300">
-                          {log.entityType.replace(/_/g, ' ')}
-                        </span>
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm text-slate-900 dark:text-slate-50 max-w-32 truncate">
-                        {getEntityName(log)}
+                        <div className="text-sm text-slate-900 dark:text-slate-50 max-w-32 truncate">
+                          {getEntityName(log)}
+                        </div>
                       </div>
                     </td>
                     <td className="px-6 py-4">

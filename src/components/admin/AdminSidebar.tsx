@@ -9,7 +9,6 @@ import {
   Tv, 
   Users, 
   Settings, 
-  BarChart3, 
   Plus,
   List,
   LogOut,
@@ -28,7 +27,7 @@ const navigation = [
   { name: '电视剧', href: '/admin/tv', icon: Tv },
   { name: '电影', href: '/admin/movies', icon: Film },
   { name: '演员', href: '/admin/actors', icon: Users },
-  { name: '添加内容', href: '/admin/add', icon: Plus },
+  { name: '添加影视剧', href: '/admin/add', icon: Plus },
   { name: '操作日志', href: '/admin/logs', icon: List },
   { name: '设置', href: '/admin/settings', icon: Settings },
   { name: '访问网站', href: '/', icon: ExternalLink },
@@ -89,8 +88,10 @@ export function AdminSidebar() {
     <Card className="w-64 h-screen bg-slate-50/50 dark:bg-slate-900/50 backdrop-blur-sm border-slate-200 dark:border-slate-700 rounded-none flex flex-col border-r border-l-0 border-t-0 border-b-0">
       <CardContent className="p-6 flex-1 overflow-y-auto scrollbar-custom">
         <div className="flex items-center gap-2 mb-8">
-          <BarChart3 className="h-8 w-8 text-blue-500" />
-          <h2 className="text-xl font-bold text-slate-900 dark:text-slate-50">管理面板</h2>
+          <div className="w-8 h-8 bg-gradient-to-r from-blue-500 to-purple-500 rounded-lg flex items-center justify-center">
+            <span className="text-white font-bold text-lg">剧</span>
+          </div>
+          <h2 className="text-xl font-bold text-slate-900 dark:text-slate-50">剧海拾遗后台</h2>
         </div>
         
         <nav className="space-y-2">

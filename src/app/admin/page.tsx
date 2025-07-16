@@ -3,6 +3,11 @@ import { AdminSidebar } from '@/components/admin/AdminSidebar'
 import { AdminStats } from '@/components/admin/AdminStats'
 import { RecentActivity } from '@/components/admin/RecentActivity'
 
+export const metadata = {
+  title: '管理后台 - 剧海拾遗',
+  description: '剧海拾遗管理后台，管理影视内容、用户和系统设置',
+}
+
 export default function AdminDashboard() {
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-slate-950">
@@ -11,7 +16,7 @@ export default function AdminDashboard() {
         <main className="flex-1 p-6 overflow-hidden">
           <div className="h-full flex flex-col max-w-7xl mx-auto">
             <div className="mb-6 flex-shrink-0">
-              <h1 className="text-3xl font-bold text-slate-900 dark:text-slate-50 mb-2">管理面板</h1>
+              <h1 className="text-3xl font-bold text-slate-900 dark:text-slate-50 mb-2">剧海拾遗 管理后台</h1>
               <p className="text-slate-600 dark:text-slate-400">欢迎回来，管理员</p>
             </div>
             

@@ -478,6 +478,45 @@ export function MoviesList({ movies: initialMovies }: MoviesListProps) {
     }
   }
 
+  const handleRefreshTMDBMetadata = async () => {
+    if (selectedMovies.length === 0) return
+    
+    setProcessing(true)
+    try {
+      const response = await fetch('/api/admin/content/refresh-tmdb', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          movieIds: selectedMovies
+        })
+      })
+      
+      if (response.ok) {
+        const result = await response.json()
+        if (result.results.failed === 0) {
+          toast.success('TMDB元数据刷新完成！', {
+            description: `成功刷新 ${result.results.success} 个电影的元数据`
+          })
+        } else {
+          toast.warning('TMDB元数据刷新完成', {
+            description: `成功: ${result.results.success} 个，失败: ${result.results.failed} 个`
+          })
+        }
+      } else {
+        toast.error('TMDB元数据刷新失败')
+      }
+      
+      setSelectedMovies([])
+      window.location.reload()
+    } catch (error) {
+      toast.error('TMDB元数据刷新过程中出现错误')
+    } finally {
+      setProcessing(false)
+    }
+  }
+
   const handleDeleteClick = (movie: Movie) => {
     setDeleteDialog({ isOpen: true, movie })
   }
@@ -641,6 +680,22 @@ export function MoviesList({ movies: initialMovies }: MoviesListProps) {
                     处理图片
                   </Button>
                 )}
+                
+                {/* 刷新TMDB元数据 */}
+                <Button
+                  onClick={handleRefreshTMDBMetadata}
+                  disabled={processing || batchProcessing}
+                  variant="outline"
+                  size="sm"
+                  className="h-8 text-xs"
+                >
+                  {processing ? (
+                    <RefreshCw className="h-3 w-3 mr-1 animate-spin" />
+                  ) : (
+                    <RefreshCw className="h-3 w-3 mr-1" />
+                  )}
+                  刷新元数据
+                </Button>
               </>
             )}
           </div>

@@ -4,7 +4,7 @@ import { useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { ThemeToggle } from '@/components/theme-toggle'
-import { Github, Film, Search } from 'lucide-react'
+import { Github, Search } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 
 interface NavbarProps {
@@ -28,8 +28,8 @@ export function Navbar({}: NavbarProps = {}) {
         <div className="flex items-center justify-between h-16">
           {/* Logo and Title */}
           <Link href="/" className="flex items-center gap-3 hover:opacity-80 transition-opacity">
-            <div className="flex items-center justify-center w-8 h-8 bg-blue-600 dark:bg-blue-500 rounded-lg">
-              <Film className="h-5 w-5 text-white" />
+            <div className="w-8 h-8 bg-gradient-to-r from-blue-500 to-purple-500 rounded-lg flex items-center justify-center">
+              <span className="text-white font-bold text-lg">剧</span>
             </div>
             <span className="text-xl font-bold text-slate-900 dark:text-white">
               剧海拾遗

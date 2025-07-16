@@ -10,7 +10,7 @@ export default function AdminAdd() {
         {/* 固定头部 */}
         <div className="flex-shrink-0 p-6 border-b border-slate-200 dark:border-slate-700">
           <div className="max-w-4xl mx-auto">
-            <h1 className="text-3xl font-bold text-slate-900 dark:text-slate-50 mb-2">添加内容</h1>
+            <h1 className="text-3xl font-bold text-slate-900 dark:text-slate-50 mb-2">添加影视剧</h1>
             <p className="text-slate-600 dark:text-slate-400">从 TMDb 搜索并添加电影或电视剧</p>
           </div>
         </div>

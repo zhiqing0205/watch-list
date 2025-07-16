@@ -58,6 +58,11 @@ export const LOG_ACTIONS = {
   IMPORT_FROM_TMDB: 'IMPORT_FROM_TMDB',
   BATCH_IMPORT: 'BATCH_IMPORT',
   
+  // 元数据管理
+  REFRESH_TMDB_METADATA: 'REFRESH_TMDB_METADATA',
+  BATCH_REFRESH_TMDB: 'BATCH_REFRESH_TMDB',
+  SCHEDULE_METADATA_UPDATE: 'SCHEDULE_METADATA_UPDATE',
+  
   // 用户认证
   USER_LOGIN: 'USER_LOGIN',
   USER_LOGOUT: 'USER_LOGOUT',
@@ -174,6 +179,23 @@ export class LogDescriptionBuilder {
     const typeLabel = entityType === 'MOVIE' ? 'movie' : 'TV show'
     const action = isBatch ? 'Batch processed' : 'Processed'
     return `${action} images for ${typeLabel} "${entityName}"`
+  }
+
+  /**
+   * 生成TMDB元数据刷新的日志描述
+   */
+  static tmdbRefresh(entityType: EntityType, entityName: string, isBatch: boolean = false): string {
+    const typeLabel = entityType === 'MOVIE' ? 'movie' : 'TV show'
+    const action = isBatch ? 'Batch refreshed' : 'Refreshed'
+    return `${action} TMDB metadata for ${typeLabel} "${entityName}"`
+  }
+
+  /**
+   * 生成定时任务的日志描述
+   */
+  static scheduledUpdate(cronExpression: string, isEnabled: boolean): string {
+    const action = isEnabled ? 'Enabled' : 'Disabled'
+    return `${action} scheduled TMDB metadata update (${cronExpression})`
   }
 }
 

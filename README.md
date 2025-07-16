@@ -64,7 +64,22 @@ OSS_ACCESS_KEY_SECRET="your_access_key_secret"
 # JWT 配置
 JWT_SECRET="your_jwt_secret_key"
 JWT_EXPIRES_IN="7d"
+
+# 定时任务配置
+TMDB_AUTO_UPDATE_ENABLED=false
+TMDB_UPDATE_CRON="0 2 * * *"
+TMDB_UPDATE_BATCH_SIZE=50
 ```
+
+### 定时任务配置
+
+系统支持定时刷新TMDB元数据功能：
+
+- `TMDB_AUTO_UPDATE_ENABLED`: 是否启用定时更新 (true/false)
+- `TMDB_UPDATE_CRON`: Cron表达式，默认每天凌晨2点执行
+- `TMDB_UPDATE_BATCH_SIZE`: 每次更新的内容数量 (1-100)
+
+> **注意**: 当前的定时任务只是配置界面和API端点，不会自动执行。要实现真正的定时任务，需要配置外部定时任务系统。
 
 ### 数据库设置
 
@@ -105,6 +120,14 @@ npm run dev
 - 评分信息（TMDB + 豆瓣，保留一位小数）
 - 演员阵容展示
 - 基于类型的相似推荐
+
+### 管理后台功能
+- 影视内容管理（增删改查）
+- 批量操作支持
+- TMDB元数据手动/定时刷新
+- 图片批量处理和上传
+- 操作日志追踪
+- 系统设置配置
 
 ### 搜索与推荐
 - 实时搜索 TMDB 数据库
@@ -190,6 +213,31 @@ src/
 2. 在 Vercel 中导入项目
 3. 配置环境变量
 4. 部署
+
+#### 定时任务配置
+
+Vercel 不支持传统的 cron 任务。要实现定时刷新 TMDB 元数据，可以使用以下方案：
+
+**方案 1: Vercel Cron Jobs**
+```javascript
+// vercel.json
+{
+  "crons": [
+    {
+      "path": "/api/admin/scheduled-tasks",
+      "schedule": "0 2 * * *"
+    }
+  ]
+}
+```
+
+**方案 2: 外部定时任务服务**
+- 使用 GitHub Actions
+- 使用 Uptime Robot 等监控服务
+- 使用 Zapier 等自动化工具
+
+**方案 3: 手动触发**
+在管理后台设置页面手动点击“批量刷新TMDB元数据”按钮
 
 ### 自定义部署
 

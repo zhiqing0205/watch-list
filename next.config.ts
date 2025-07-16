@@ -10,7 +10,7 @@ const nextConfig: NextConfig = {
         pathname: '/t/p/**',
       },
       {
-        protocol: 'http',
+        protocol: 'https',
         hostname: `${process.env.OSS_BUCKET_NAME}.${process.env.OSS_REGION}.aliyuncs.com`,
         port: '',
         pathname: '/**',
