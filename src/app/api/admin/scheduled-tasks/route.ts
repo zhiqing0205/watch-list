@@ -3,6 +3,8 @@ import { prisma } from '@/lib/prisma'
 import { logAdminOperation, LOG_ACTIONS, LogDescriptionBuilder } from '@/lib/operation-logger'
 import { EntityType } from '@prisma/client'
 
+export const dynamic = 'force-dynamic'
+
 export async function POST(request: NextRequest) {
   try {
     const { action, cronExpression, enabled } = await request.json()

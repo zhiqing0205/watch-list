@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { requireAdmin } from '@/lib/auth-server'
 
+export const dynamic = 'force-dynamic'
+
 export async function PUT(request: NextRequest) {
   try {
     // 验证用户认证和权限

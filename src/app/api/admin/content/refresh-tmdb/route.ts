@@ -3,6 +3,8 @@ import { prisma } from '@/lib/prisma'
 import { logAdminOperation, LOG_ACTIONS, LogDescriptionBuilder } from '@/lib/operation-logger'
 import { EntityType } from '@prisma/client'
 
+export const dynamic = 'force-dynamic'
+
 // TMDB API 配置
 const TMDB_API_KEY = process.env.TMDB_API_KEY
 const TMDB_BASE_URL = 'https://api.themoviedb.org/3'

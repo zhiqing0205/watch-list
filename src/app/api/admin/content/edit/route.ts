@@ -1,11 +1,16 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { prisma } from '@/lib/prisma'
 import { requireAdmin } from '@/lib/auth-server'
 import { logOperation, LOG_ACTIONS } from '@/lib/operation-logger'
 import { EntityType } from '@prisma/client'
 
+// 强制动态渲染
+export const dynamic = 'force-dynamic'
+
 export async function PATCH(request: NextRequest) {
   try {
+    // 动态导入 Prisma 客户端
+    const { prisma } = await import('@/lib/prisma')
+    
     // 验证用户认证和权限
     const user = requireAdmin(request)
 
