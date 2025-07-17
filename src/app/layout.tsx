@@ -4,6 +4,8 @@ import "./globals.css";
 import { Toaster } from "@/components/ui/sonner";
 import { ThemeProvider } from "@/components/theme-provider";
 import { AuthProvider } from "@/components/AuthProvider";
+import { LoadingProvider } from "@/contexts/LoadingContext";
+import { GlobalLoadingIndicator } from "@/components/GlobalLoadingIndicator";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -73,9 +75,12 @@ export default function RootLayout({
           enableSystem
           disableTransitionOnChange
         >
-          <AuthProvider>
-            {children}
-          </AuthProvider>
+          <LoadingProvider>
+            <AuthProvider>
+              <GlobalLoadingIndicator />
+              {children}
+            </AuthProvider>
+          </LoadingProvider>
           <Toaster />
         </ThemeProvider>
       </body>
