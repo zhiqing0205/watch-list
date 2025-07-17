@@ -41,7 +41,7 @@ export function AdminSidebar() {
 
   useEffect(() => {
     // 从 localStorage 或 cookie 获取用户信息
-    const token = localStorage.getItem('auth-token')
+    const token = localStorage.getItem('token')
     if (token) {
       try {
         const payload = JSON.parse(atob(token.split('.')[1]))
@@ -63,6 +63,9 @@ export function AdminSidebar() {
       })
 
       if (response.ok) {
+        // 清除localStorage中的token
+        localStorage.removeItem('token')
+        
         toast.success('登出成功', {
           description: '正在跳转到登录页面...'
         })
