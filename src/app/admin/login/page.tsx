@@ -44,8 +44,8 @@ export default function LoginPage() {
 
       if (response.ok) {
         // 设置token到cookie和localStorage
-        document.cookie = `auth-token=${data.token}; path=/; max-age=${7 * 24 * 60 * 60}; SameSite=Lax`
-        localStorage.setItem('auth-token', data.token)
+        document.cookie = `token=${data.token}; path=/; max-age=${7 * 24 * 60 * 60}; SameSite=Lax`
+        localStorage.setItem('token', data.token)
         
         toast.success('登录成功！', {
           description: '正在跳转到管理后台...'

@@ -6,7 +6,7 @@ export async function POST(request: NextRequest) {
   try {
     // 获取token
     const authHeader = request.headers.get('authorization')
-    const cookieToken = request.cookies.get('auth-token')?.value
+    const cookieToken = request.cookies.get('token')?.value
     const token = authHeader?.replace('Bearer ', '') || cookieToken
 
     if (token) {
@@ -33,8 +33,8 @@ export async function POST(request: NextRequest) {
       message: '登出成功',
     })
 
-    // 清除auth-token cookie
-    response.cookies.set('auth-token', '', {
+    // 清除token cookie
+    response.cookies.set('token', '', {
       httpOnly: false,
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'lax',
