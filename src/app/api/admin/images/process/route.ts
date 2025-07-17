@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { processContentImages } from '@/lib/image-processor'
+import { processContentWithActorsImages } from '@/lib/image-processor'
 import { requireAdmin } from '@/lib/auth-server'
 import { logOperation, LOG_ACTIONS } from '@/lib/operation-logger'
 import { EntityType } from '@prisma/client'
@@ -21,10 +21,11 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Invalid content type' }, { status: 400 })
     }
 
-    await processContentImages(contentId, contentType as 'movie' | 'tv')
+    // 处理内容和演员图片
+    const results = await processContentWithActorsImages(contentId, contentType as 'movie' | 'tv')
 
     // 记录操作日志
-    const description = `处理${contentType === 'movie' ? '电影' : '电视剧'}图片完成`
+    const description = `处理${contentType === 'movie' ? '电影' : '电视剧'}图片完成：${results.contentImages}个内容图片，${results.actorImages}个演员图片`
     
     await logOperation({
       userId: user.userId,
@@ -38,7 +39,8 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({
       success: true,
-      message: description
+      message: description,
+      results
     })
   } catch (error: any) {
     if (error instanceof Error && (error.message === 'Authentication required' || error.message === 'Admin access required')) {
