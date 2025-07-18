@@ -57,6 +57,7 @@ export function MoviesList({ movies: initialMovies }: MoviesListProps) {
     isOpen: false,
     movie: null
   })
+  const [batchDeleteDialog, setBatchDeleteDialog] = useState(false)
   const [deleting, setDeleting] = useState(false)
   const [togglingVisibility, setTogglingVisibility] = useState<number | null>(null)
   const [updatingStatus, setUpdatingStatus] = useState<number | null>(null)
@@ -335,10 +336,17 @@ export function MoviesList({ movies: initialMovies }: MoviesListProps) {
     }
   }
 
+  // 批量删除确认
+  const handleBatchDeleteConfirm = () => {
+    if (selectedMovies.length === 0) return
+    setBatchDeleteDialog(true)
+  }
+
   // 批量删除
   const handleBatchDelete = async () => {
     if (selectedMovies.length === 0) return
     
+    setBatchDeleteDialog(false)
     setBatchProcessing(true)
     try {
       const promises = selectedMovies.map(async (movieId) => {
@@ -653,7 +661,7 @@ export function MoviesList({ movies: initialMovies }: MoviesListProps) {
                 
                 {/* 批量删除 */}
                 <Button
-                  onClick={handleBatchDelete}
+                  onClick={handleBatchDeleteConfirm}
                   disabled={batchProcessing}
                   variant="destructive"
                   size="sm"
@@ -903,6 +911,27 @@ export function MoviesList({ movies: initialMovies }: MoviesListProps) {
         cancelText="取消"
         type="danger"
         loading={deleting}
+      />
+
+      {/* 批量删除确认对话框 */}
+      <ConfirmDialog
+        isOpen={batchDeleteDialog}
+        onClose={() => setBatchDeleteDialog(false)}
+        onConfirm={handleBatchDelete}
+        title="批量删除电影"
+        message={
+          <span>
+            确定要删除选中的 <strong>{selectedMovies.length}</strong> 部电影吗？
+            <br />
+            <span className="text-slate-600 dark:text-slate-400 text-xs mt-1 block">
+              此操作不可撤销，将同时删除相关的评论和操作记录
+            </span>
+          </span>
+        }
+        confirmText="删除"
+        cancelText="取消"
+        type="danger"
+        loading={batchProcessing}
       />
     </div>
   )

@@ -59,6 +59,7 @@ export function TvShowsList({ tvShows: initialTvShows }: TvShowsListProps) {
     isOpen: false,
     tvShow: null
   })
+  const [batchDeleteDialog, setBatchDeleteDialog] = useState(false)
   const [deleting, setDeleting] = useState(false)
   const [togglingVisibility, setTogglingVisibility] = useState<number | null>(null)
   const [updatingStatus, setUpdatingStatus] = useState<number | null>(null)
@@ -337,10 +338,17 @@ export function TvShowsList({ tvShows: initialTvShows }: TvShowsListProps) {
     }
   }
 
+  // 批量删除确认
+  const handleBatchDeleteConfirm = () => {
+    if (selectedTvShows.length === 0) return
+    setBatchDeleteDialog(true)
+  }
+
   // 批量删除
   const handleBatchDelete = async () => {
     if (selectedTvShows.length === 0) return
     
+    setBatchDeleteDialog(false)
     setBatchProcessing(true)
     try {
       const promises = selectedTvShows.map(async (tvShowId) => {
@@ -656,7 +664,7 @@ export function TvShowsList({ tvShows: initialTvShows }: TvShowsListProps) {
                 
                 {/* 批量删除 */}
                 <Button
-                  onClick={handleBatchDelete}
+                  onClick={handleBatchDeleteConfirm}
                   disabled={batchProcessing}
                   variant="destructive"
                   size="sm"
@@ -919,6 +927,27 @@ export function TvShowsList({ tvShows: initialTvShows }: TvShowsListProps) {
         cancelText="取消"
         type="danger"
         loading={deleting}
+      />
+
+      {/* 批量删除确认对话框 */}
+      <ConfirmDialog
+        isOpen={batchDeleteDialog}
+        onClose={() => setBatchDeleteDialog(false)}
+        onConfirm={handleBatchDelete}
+        title="批量删除电视剧"
+        message={
+          <span>
+            确定要删除选中的 <strong>{selectedTvShows.length}</strong> 部电视剧吗？
+            <br />
+            <span className="text-slate-600 dark:text-slate-400 text-xs mt-1 block">
+              此操作不可撤销，将同时删除相关的评论和操作记录
+            </span>
+          </span>
+        }
+        confirmText="删除"
+        cancelText="取消"
+        type="danger"
+        loading={batchProcessing}
       />
     </div>
   )

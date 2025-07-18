@@ -45,27 +45,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <head>
-        <script
-          dangerouslySetInnerHTML={{
-            __html: `
-              (function() {
-                try {
-                  var stored = localStorage.getItem('watch-list-theme');
-                  var systemDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-                  var shouldBeDark = stored === 'dark' || (stored !== 'light' && systemDark);
-                  
-                  if (shouldBeDark) {
-                    document.documentElement.classList.add('dark');
-                  } else {
-                    document.documentElement.classList.remove('dark');
-                  }
-                } catch (e) {}
-              })();
-            `,
-          }}
-        />
-      </head>
+      <head></head>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >

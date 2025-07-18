@@ -9,6 +9,7 @@ import { Navbar } from '@/components/Navbar'
 import { Button } from '@/components/ui/button'
 import { ArrowUp, ArrowDown } from 'lucide-react'
 import { WatchStatus } from '@prisma/client'
+import { AnimatedGradientBackground } from '@/components/AnimatedGradientBackground'
 
 interface Movie {
   id: number
@@ -229,9 +230,10 @@ export default function HomePageClient({ initialTvShows, initialMovies, availabl
   }
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-slate-950">
-      <Navbar />
-      <div className="container mx-auto px-4 py-8">
+    <AnimatedGradientBackground className="min-h-screen">
+      <div className="min-h-screen">
+        <Navbar />
+        <div className="container mx-auto px-4 py-8">
         {/* Content Filter */}
         <ContentFilter
           watchStatusFilter={watchStatusFilter}
@@ -396,5 +398,6 @@ export default function HomePageClient({ initialTvShows, initialMovies, availabl
         )}
       </div>
     </div>
+    </AnimatedGradientBackground>
   )
 }
