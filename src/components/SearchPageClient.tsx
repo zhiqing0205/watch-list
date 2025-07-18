@@ -7,6 +7,7 @@ import { TvCard } from '@/components/TvCard'
 import { Pagination } from '@/components/ui/Pagination'
 import { Navbar } from '@/components/Navbar'
 import { Search, Film, Tv, User } from 'lucide-react'
+import { AnimatedGradientBackground } from '@/components/AnimatedGradientBackground'
 
 interface Movie {
   id: number
@@ -139,9 +140,10 @@ export default function SearchPageClient() {
   const filteredResults = getFilteredResults()
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-slate-950">
-      <Navbar />
-      <div className="container mx-auto px-4 py-8">
+    <AnimatedGradientBackground className="min-h-screen">
+      <div className="min-h-screen">
+        <Navbar />
+        <div className="container mx-auto px-4 py-8">
         {loading && (
           <div className="text-center py-16">
             <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
@@ -294,5 +296,6 @@ export default function SearchPageClient() {
         )}
       </div>
     </div>
+    </AnimatedGradientBackground>
   )
 }

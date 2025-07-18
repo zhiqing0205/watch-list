@@ -13,13 +13,15 @@ import {
   List,
   LogOut,
   User,
-  ExternalLink
+  ExternalLink,
+  Loader2
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { ThemeToggle } from '@/components/theme-toggle'
+import { FullScreenLoading } from '@/components/ui/FullScreenLoading'
 import { toast } from 'sonner'
 
 const navigation = [
@@ -38,6 +40,7 @@ export function AdminSidebar() {
   const router = useRouter()
   const [loggingOut, setLoggingOut] = useState(false)
   const [username, setUsername] = useState('Admin')
+  const [navigating, setNavigating] = useState<string | null>(null)
 
   useEffect(() => {
     // 从 localStorage 或 cookie 获取用户信息
@@ -51,6 +54,23 @@ export function AdminSidebar() {
       }
     }
   }, [])
+
+  const handleNavigation = (href: string, itemName: string) => {
+    if (href === pathname) return // 如果是当前页面，不做任何操作
+    
+    setNavigating(href)
+    
+    // 添加延迟以显示loading效果，并根据页面类型设置不同的延迟
+    const delay = href.includes('/admin/add') ? 800 : 600
+    setTimeout(() => {
+      router.push(href)
+    }, delay)
+  }
+
+  // 监听路由变化，取消loading状态
+  useEffect(() => {
+    setNavigating(null)
+  }, [pathname])
 
   const handleLogout = async () => {
     setLoggingOut(true)
@@ -88,8 +108,13 @@ export function AdminSidebar() {
   }
 
   return (
-    <Card className="w-64 h-screen bg-slate-50/50 dark:bg-slate-900/50 backdrop-blur-sm border-slate-200 dark:border-slate-700 rounded-none flex flex-col border-r border-l-0 border-t-0 border-b-0">
-      <CardContent className="p-6 flex-1 overflow-y-auto scrollbar-custom">
+    <>
+      <FullScreenLoading 
+        isVisible={!!navigating} 
+        message={navigating ? `正在前往${navigation.find(item => item.href === navigating)?.name || '页面'}...` : '页面加载中...'}
+      />
+      <Card className="w-64 h-screen bg-slate-50/50 dark:bg-slate-900/50 backdrop-blur-sm border-slate-200 dark:border-slate-700 rounded-none flex flex-col border-r border-l-0 border-t-0 border-b-0">
+        <CardContent className="p-6 flex-1 overflow-y-auto scrollbar-custom">
         <div className="flex items-center gap-2 mb-8">
           <div className="w-8 h-8 bg-gradient-to-r from-blue-500 to-purple-500 rounded-lg flex items-center justify-center">
             <span className="text-white font-bold text-lg">剧</span>
@@ -100,22 +125,23 @@ export function AdminSidebar() {
         <nav className="space-y-2">
           {navigation.map((item) => {
             const isActive = pathname === item.href
+            const isNavigating = navigating === item.href
             return (
               <Button
                 key={item.name}
-                asChild
                 variant={isActive ? "default" : "ghost"}
                 className={cn(
                   'w-full justify-start gap-3 text-sm font-medium',
                   isActive
                     ? 'bg-blue-600 text-white hover:bg-blue-700'
-                    : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-slate-50'
+                    : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-slate-50',
+                  isNavigating && 'opacity-75'
                 )}
+                onClick={() => handleNavigation(item.href, item.name)}
+                disabled={!!navigating}
               >
-                <Link href={item.href}>
-                  <item.icon className="h-5 w-5" />
-                  {item.name}
-                </Link>
+                <item.icon className="h-5 w-5" />
+                {item.name}
               </Button>
             )
           })}
@@ -146,5 +172,6 @@ export function AdminSidebar() {
         </div>
       </CardContent>
     </Card>
+    </>
   )
 }
