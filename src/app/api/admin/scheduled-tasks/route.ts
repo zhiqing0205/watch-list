@@ -32,50 +32,84 @@ export async function POST(request: NextRequest) {
     // 为 Vercel Cron Jobs 添加支持
     // 如果没有 action 参数，说明是 Vercel Cron 调用
     if (!action) {
-      // 检查是否启用定时更新
-      const isEnabled = process.env.TMDB_AUTO_UPDATE_ENABLED === 'true'
+      console.log('🕒 开始执行定时任务...')
       
-      if (!isEnabled) {
-        return NextResponse.json({
-          success: false,
-          message: 'Scheduled update is disabled'
-        })
-      }
-      
-      // 执行定时任务 - 刷新所有内容的TMDB元数据
-      const baseUrl = process.env.NEXTAUTH_URL || 'http://localhost:3000'
-      const refreshResponse = await fetch(`${baseUrl}/api/admin/content/refresh-tmdb`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          refreshAll: true
-        })
-      })
-      
-      if (refreshResponse.ok) {
-        const result = await refreshResponse.json()
+      try {
+        // 1. 执行数据库备份
+        console.log('📦 开始数据库备份...')
+        const { scheduledBackup } = require('../../../../../scripts/scheduled-backup.js')
+        await scheduledBackup()
+        console.log('✅ 数据库备份完成')
         
-        // 记录定时任务执行日志
-        await logAdminOperation({
-          action: LOG_ACTIONS.SCHEDULE_METADATA_UPDATE,
-          entityType: EntityType.MOVIE,
-          description: `Scheduled TMDB refresh completed: ${result.results.success} success, ${result.results.failed} failed`
-        })
+        // 2. 检查是否启用TMDB更新
+        const isTmdbUpdateEnabled = process.env.TMDB_AUTO_UPDATE_ENABLED === 'true'
+        
+        if (isTmdbUpdateEnabled) {
+          console.log('🎬 开始TMDB元数据更新...')
+          const baseUrl = process.env.NEXTAUTH_URL || 'http://localhost:3000'
+          const refreshResponse = await fetch(`${baseUrl}/api/admin/content/refresh-tmdb`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              refreshAll: true
+            })
+          })
+          
+          if (refreshResponse.ok) {
+            const result = await refreshResponse.json()
+            console.log(`✅ TMDB更新完成: ${result.results.success} 成功, ${result.results.failed} 失败`)
+            
+            // 记录定时任务执行日志
+            await logAdminOperation({
+              action: LOG_ACTIONS.SCHEDULE_METADATA_UPDATE,
+              entityType: EntityType.SYSTEM,
+              description: `定时任务完成: 数据库备份成功, TMDB更新 ${result.results.success} 成功 ${result.results.failed} 失败`
+            })
+          } else {
+            console.warn('⚠️ TMDB更新失败')
+          }
+        } else {
+          console.log('ℹ️ TMDB自动更新已禁用')
+          
+          // 记录定时任务执行日志（仅备份）
+          await logAdminOperation({
+            action: LOG_ACTIONS.SCHEDULE_METADATA_UPDATE,
+            entityType: EntityType.SYSTEM,
+            description: '定时任务完成: 数据库备份成功'
+          })
+        }
         
         return NextResponse.json({
           success: true,
-          message: 'Scheduled refresh completed',
-          results: result.results
+          message: 'Scheduled tasks completed successfully',
+          completed: {
+            backup: true,
+            tmdbUpdate: isTmdbUpdateEnabled
+          }
         })
-      } else {
-        throw new Error('Failed to execute scheduled refresh')
+        
+      } catch (backupError) {
+        console.error('❌ 定时任务执行失败:', backupError)
+        
+        // 记录错误日志
+        await logAdminOperation({
+          action: 'SCHEDULED_TASK_FAILED',
+          entityType: EntityType.SYSTEM,
+          description: `定时任务失败: ${backupError.message}`
+        })
+        
+        return NextResponse.json({
+          success: false,
+          message: 'Scheduled tasks failed',
+          error: backupError.message
+        }, { status: 500 })
       }
     }
     
     if (action === 'execute') {
-      // 执行定时任务 - 刷新所有内容的TMDB元数据
+      // 手动执行定时任务 - 刷新所有内容的TMDB元数据
       const baseUrl = process.env.NEXTAUTH_URL || 'http://localhost:3000'
       const refreshResponse = await fetch(`${baseUrl}/api/admin/content/refresh-tmdb`, {
         method: 'POST',
@@ -94,16 +128,36 @@ export async function POST(request: NextRequest) {
         await logAdminOperation({
           action: LOG_ACTIONS.SCHEDULE_METADATA_UPDATE,
           entityType: EntityType.MOVIE,
-          description: `Scheduled TMDB refresh completed: ${result.results.success} success, ${result.results.failed} failed`
+          description: `手动执行TMDB刷新完成: ${result.results.success} 成功, ${result.results.failed} 失败`
         })
         
         return NextResponse.json({
           success: true,
-          message: 'Scheduled refresh completed',
+          message: 'Manual refresh completed',
           results: result.results
         })
       } else {
-        throw new Error('Failed to execute scheduled refresh')
+        throw new Error('Failed to execute manual refresh')
+      }
+    }
+    
+    if (action === 'backup') {
+      // 手动执行数据库备份
+      try {
+        const { scheduledBackup } = require('../../../../../scripts/scheduled-backup.js')
+        await scheduledBackup()
+        
+        return NextResponse.json({
+          success: true,
+          message: 'Database backup completed successfully'
+        })
+      } catch (backupError) {
+        console.error('备份失败:', backupError)
+        return NextResponse.json({
+          success: false,
+          message: 'Database backup failed',
+          error: backupError.message
+        }, { status: 500 })
       }
     }
     

@@ -14,16 +14,25 @@ export async function POST(request: NextRequest) {
       const payload = AuthUtils.verifyToken(token)
       
       if (payload) {
-        // 创建操作日志
-        await prisma.operationLog.create({
-          data: {
-            userId: payload.userId,
-            action: 'LOGOUT',
-            entityType: 'USER',
-            entityId: payload.userId,
-            description: '用户登出',
-          },
+        // 获取用户信息用于日志记录
+        const user = await prisma.user.findUnique({
+          where: { id: payload.userId },
+          select: { id: true, name: true, username: true }
         })
+        
+        if (user) {
+          // 创建操作日志
+          await prisma.operationLog.create({
+            data: {
+              userId: user.id,
+              operatorName: user.name || user.username,
+              action: 'LOGOUT',
+              entityType: 'USER',
+              resourceType: 'USER',
+              description: '用户登出',
+            },
+          })
+        }
       }
     }
 

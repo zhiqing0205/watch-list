@@ -20,16 +20,6 @@ export async function GET(request: NextRequest) {
             email: true,
           },
         },
-        movie: {
-          select: {
-            title: true,
-          },
-        },
-        tvShow: {
-          select: {
-            name: true,
-          },
-        },
       },
       orderBy: {
         createdAt: 'desc',
@@ -47,7 +37,7 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
-    const { action, entityType, entityId, description } = await request.json()
+    const { action, entityType, resourceId, resourceName, resourceType, description, metadata } = await request.json()
 
     if (!action || !entityType) {
       return NextResponse.json(
@@ -56,21 +46,21 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Convert entityId to integer if provided
-    let numericEntityId: number | null = null
-    if (entityId) {
-      numericEntityId = parseInt(entityId, 10)
-      if (isNaN(numericEntityId)) {
+    // Convert resourceId to integer if provided
+    let numericResourceId: number | null = null
+    if (resourceId) {
+      numericResourceId = parseInt(resourceId, 10)
+      if (isNaN(numericResourceId)) {
         return NextResponse.json(
-          { error: '无效的实体ID' },
+          { error: '无效的资源ID' },
           { status: 400 }
         )
       }
     }
 
     // Get user info from cookies or session
-    // For now, we'll use a default admin user
     let userId = 1 // Default admin user ID
+    let operatorName = 'SYSTEM'
 
     // Try to get user from cookies if available
     const cookieStore = cookies()
@@ -79,28 +69,23 @@ export async function POST(request: NextRequest) {
       try {
         const user = JSON.parse(userCookie.value)
         userId = user.id
+        operatorName = user.username || user.name || 'Unknown'
       } catch (e) {
         // Use default if parsing fails
       }
     }
 
-    // Prepare the data object based on entity type
+    // Prepare the data object with new schema
     const logData: any = {
       action,
       entityType,
+      resourceId: numericResourceId,
+      resourceName,
+      resourceType,
       description,
+      metadata,
       userId,
-    }
-
-    // Set the appropriate foreign key based on entity type
-    if (numericEntityId) {
-      logData.entityId = numericEntityId
-      
-      if (entityType === 'MOVIE') {
-        logData.movieId = numericEntityId
-      } else if (entityType === 'TV_SHOW') {
-        logData.tvShowId = numericEntityId
-      }
+      operatorName,
     }
 
     await prisma.operationLog.create({

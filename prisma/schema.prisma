@@ -56,7 +56,6 @@ model Movie {
   // Relations
   cast        MovieCast[]
   reviews     MovieReview[]
-  operationLogs OperationLog[]
 
   @@map("movies")
 }
@@ -89,7 +88,6 @@ model TvShow {
   // Relations
   cast        TvCast[]
   reviews     TvReview[]
-  operationLogs OperationLog[]
 
   @@map("tv_shows")
 }
@@ -182,18 +180,18 @@ model TvReview {
 model OperationLog {
   id          Int           @id @default(autoincrement())
   userId      Int
+  operatorName String       // 操作员名称
   action      String
   entityType  EntityType
-  entityId    Int?
-  movieId     Int?
-  tvShowId    Int?
+  resourceId  Int?          // 被操作资源的ID（仅作记录，不作外键）
+  resourceName String?      // 被操作资源的名称（电影/电视剧标题等）
+  resourceType String?      // 资源类型：MOVIE, TV_SHOW, ACTOR等
   description String?
+  metadata    Json?         // 存储额外的操作相关数据
   createdAt   DateTime      @default(now())
 
   // Relations
   user   User    @relation(fields: [userId], references: [id], onDelete: Cascade)
-  movie  Movie?  @relation(fields: [movieId], references: [id], onDelete: Cascade)
-  tvShow TvShow? @relation(fields: [tvShowId], references: [id], onDelete: Cascade)
 
   @@map("operation_logs")
 }
@@ -215,4 +213,5 @@ enum EntityType {
   TV_SHOW
   ACTOR
   USER
+  SYSTEM
 }

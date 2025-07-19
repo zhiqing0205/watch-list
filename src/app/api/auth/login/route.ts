@@ -56,9 +56,10 @@ export async function POST(request: NextRequest) {
     await prisma.operationLog.create({
       data: {
         userId: user.id,
+        operatorName: user.name || user.username,
         action: 'LOGIN',
         entityType: 'USER',
-        entityId: user.id,
+        resourceType: 'USER',
         description: '用户登录',
       },
     })

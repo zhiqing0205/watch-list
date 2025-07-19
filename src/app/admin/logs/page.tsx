@@ -18,16 +18,6 @@ export default async function AdminLogs() {
             email: true,
           },
         },
-        movie: {
-          select: {
-            title: true,
-          },
-        },
-        tvShow: {
-          select: {
-            name: true,
-          },
-        },
       },
       orderBy: {
         createdAt: 'desc',

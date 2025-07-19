@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import { format } from 'date-fns'
 import { zhCN } from 'date-fns/locale'
-import { User, Film, Tv, Users, Calendar, MessageSquare } from 'lucide-react'
+import { User, Film, Tv, Users, Calendar, MessageSquare, Database, Settings } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { UserAvatar } from '@/components/ui/user-avatar'
@@ -12,22 +12,20 @@ import { Pagination } from '@/components/ui/Pagination'
 interface OperationLog {
   id: number
   userId: number
+  operatorName: string
   action: string
   entityType: string
-  entityId: number | null
+  resourceId: number | null
+  resourceName: string | null
+  resourceType: string | null
   description: string | null
+  metadata: any
   createdAt: Date
   user: {
     name: string
     username: string
     email: string | null
   }
-  movie?: {
-    title: string
-  } | null
-  tvShow?: {
-    name: string
-  } | null
 }
 
 interface OperationLogsListProps {
@@ -63,8 +61,10 @@ export function OperationLogsList({ initialLogs, totalCount }: OperationLogsList
     fetchLogs(page)
   }
 
-  const getEntityIcon = (entityType: string) => {
-    switch (entityType) {
+  const getEntityIcon = (entityType: string, resourceType?: string) => {
+    const type = resourceType || entityType;
+    
+    switch (type) {
       case 'MOVIE':
         return <Film className="h-4 w-4 text-blue-400" />
       case 'TV_SHOW':
@@ -73,8 +73,11 @@ export function OperationLogsList({ initialLogs, totalCount }: OperationLogsList
         return <Users className="h-4 w-4 text-purple-400" />
       case 'USER':
         return <User className="h-4 w-4 text-yellow-400" />
+      case 'SYSTEM':
+      case 'DATABASE':
+        return <Database className="h-4 w-4 text-indigo-400" />
       default:
-        return <MessageSquare className="h-4 w-4 text-gray-400" />
+        return <Settings className="h-4 w-4 text-gray-400" />
     }
   }
 
@@ -82,13 +85,64 @@ export function OperationLogsList({ initialLogs, totalCount }: OperationLogsList
     if (action.includes('CREATE') || action.includes('IMPORT')) return 'default'
     if (action.includes('UPDATE')) return 'secondary'
     if (action.includes('DELETE')) return 'destructive'
+    if (action.includes('BACKUP')) return 'outline'
     return 'outline'
   }
 
-  const getEntityName = (log: any) => {
-    if (log.movie) return log.movie.title
-    if (log.tvShow) return log.tvShow.name
-    return log.entityId ? `ID: ${String(log.entityId).slice(0, 8)}...` : '-'
+  const getActionColor = (action: string) => {
+    switch (action) {
+      case 'IMPORT_FROM_TMDB':
+      case 'IMPORT_MOVIE':
+      case 'IMPORT_TV_SHOW':
+        return 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400';
+      case 'DELETE_CONTENT':
+        return 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400';
+      case 'UPDATE_CONTENT':
+      case '更新观看状态':
+      case '更新评分':
+        return 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400';
+      case 'LOGIN':
+        return 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-400';
+      case 'LOGOUT':
+        return 'bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-400';
+      case 'SCHEDULED_BACKUP':
+        return 'bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-400';
+      case 'PROCESS_IMAGES':
+        return 'bg-cyan-100 text-cyan-800 dark:bg-cyan-900/30 dark:text-cyan-400';
+      default:
+        return 'bg-slate-100 text-slate-800 dark:bg-slate-800 dark:text-slate-300';
+    }
+  }
+
+  const formatActionText = (action: string) => {
+    const actionMap: { [key: string]: string } = {
+      'IMPORT_FROM_TMDB': '导入内容',
+      'IMPORT_MOVIE': '导入电影',
+      'IMPORT_TV_SHOW': '导入电视剧',
+      'DELETE_CONTENT': '删除内容',
+      'UPDATE_CONTENT': '更新内容',
+      'TOGGLE_VISIBILITY': '切换显示',
+      'PROCESS_IMAGES': '处理图片',
+      'LOGIN': '登录',
+      'LOGOUT': '登出',
+      'SCHEDULED_BACKUP': '定时备份',
+      'BACKUP_FAILED': '备份失败',
+      'REFRESH_TMDB_METADATA': '刷新元数据'
+    };
+
+    return actionMap[action] || action.replace(/_/g, ' ');
+  }
+
+  const getResourceName = (log: OperationLog) => {
+    if (log.resourceName) {
+      return log.resourceName;
+    }
+    
+    if (log.resourceId) {
+      return `ID: ${log.resourceId}`;
+    }
+    
+    return '-';
   }
 
   if (logs.length === 0) {
@@ -123,13 +177,13 @@ export function OperationLogsList({ initialLogs, totalCount }: OperationLogsList
                     时间
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-slate-700 dark:text-slate-300 uppercase tracking-wider">
-                    用户
+                    操作员
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-slate-700 dark:text-slate-300 uppercase tracking-wider">
                     操作
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-slate-700 dark:text-slate-300 uppercase tracking-wider">
-                    内容
+                    资源
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-slate-700 dark:text-slate-300 uppercase tracking-wider">
                     描述
@@ -152,21 +206,21 @@ export function OperationLogsList({ initialLogs, totalCount }: OperationLogsList
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <UserAvatar 
-                        name={log.user.name} 
-                        username={log.user.username} 
+                        name={log.user?.name || log.operatorName} 
+                        username={log.user?.username || log.operatorName} 
                         size="sm" 
                       />
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <Badge variant={getActionVariant(log.action)} className="text-xs">
-                        {log.action.replace(/_/g, ' ')}
+                      <Badge className={`text-xs ${getActionColor(log.action)}`}>
+                        {formatActionText(log.action)}
                       </Badge>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="flex items-center gap-2">
-                        {getEntityIcon(log.entityType)}
-                        <div className="text-sm text-slate-900 dark:text-slate-50 max-w-32 truncate">
-                          {getEntityName(log)}
+                        {getEntityIcon(log.entityType, log.resourceType)}
+                        <div className="text-sm text-slate-900 dark:text-slate-50 max-w-32 truncate" title={getResourceName(log)}>
+                          {getResourceName(log)}
                         </div>
                       </div>
                     </td>
